@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 4002:8080
+  db:
+    image: mysql
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - TZ=${TZ}
+    ports:
+      - '${DB_PORT}:3306'
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  db:
+    driver: local
