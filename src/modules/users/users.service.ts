@@ -51,4 +51,13 @@ export class UsersService {
     const users = await this.usersRepository.find();
     return users;
   }
+
+  async getProfile(userId: number): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`Usuario con id ${userId} no encontrado`);
+    }
+    delete user.password; // Eliminamos la contraseña antes de devolver el perfil del usuario
+    return user;
+  }
 }

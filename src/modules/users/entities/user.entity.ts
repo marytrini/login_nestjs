@@ -1,21 +1,17 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Session } from '../entities/session.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column()
   password: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  createdAt: Date;
+  @OneToMany(() => Session, (session) => session.user)
+  sessions: Session[];
 }

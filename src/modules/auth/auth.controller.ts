@@ -1,14 +1,18 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterUserDto } from '../users/dto/registerUserDto.dto';
 import { LoginUserDto } from '../users/dto/loginUserDto.dto';
+import { RefreshTokenDto } from '../auth/dto/refreshTokenDto.dto';
+import { Request } from 'express';
+import { SessionService } from '../session/session.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly sessionService: SessionService,
   ) {}
   @Post('register')
   async register(@Body() registerUserDto: RegisterUserDto) {
@@ -18,5 +22,18 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logout(@Req() req: Request) {
+    const token = req.headers.authorization?.split(' ')[1];
+    return this.authService.logout(token);
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 }
