@@ -1,14 +1,16 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { LoginUserDto } from '../users/dto/loginUserDto.dto';
+import { UsersService } from '../users/users.service';
+import { LoginUserDto } from './dto/loginUserDto.dto';
 import * as bcrypt from 'bcrypt';
 import { authConstants } from './utils/constants';
 import { SessionService } from '../session/session.service';
+import { DatabaseMappingFields } from '../../config/interfaces/database-config.interface';
 
 @Injectable()
 export class AuthService {
@@ -16,21 +18,29 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private sessionService: SessionService,
+    @Inject('DATABASE_MAPPING_FIELDS')
+    private readonly dbMappingFields: DatabaseMappingFields,
   ) {}
 
   async login(loginUserDto: LoginUserDto) {
-    const user = await this.usersService.findByEmail(loginUserDto.email);
+    const emailField = this.dbMappingFields.emailField;
+    const passwordField = this.dbMappingFields.passwordField;
+
+    const user = await this.usersService.findByField(
+      emailField,
+      loginUserDto.email,
+    );
     if (!user) {
       throw new UnauthorizedException();
     }
 
     const isPasswordValid = bcrypt.compareSync(
       loginUserDto.password,
-      user.password,
+      user[passwordField],
     );
 
     if (isPasswordValid) {
-      delete user.password;
+      delete user[passwordField];
 
       const accessToken = await this.jwtService.signAsync({ ...user });
 
@@ -73,7 +83,10 @@ export class AuthService {
       if (!session) {
         throw new Error('Usuario no encontrado');
       }
-      const user = session.user;
+      const user = await this.usersService.findByField(
+        this.dbMappingFields.emailField,
+        session.user.email,
+      );
 
       const newAccessToken = this.jwtService.sign(
         { sub: user.id },

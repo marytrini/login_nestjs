@@ -1,63 +1,95 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { RegisterUserDto } from './dto/registerUserDto.dto';
 import * as bcrypt from 'bcrypt';
+import { RegisterUserDto } from './dto/registerUserDto.dto';
+import { SessionService } from '../session/session.service';
+import { DatabaseMappingFields } from '../../config/interfaces/database-config.interface';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly usersRepository: Repository<User>,
+    @Inject('DATABASE_MAPPING_FIELDS')
+    private readonly dbMappingFields: DatabaseMappingFields,
+
+    @Inject('USER_REPOSITORY') // Inyecta el repositorio dinámicamente
+    private usersRepository: Repository<User>,
+
+    private sessionService: SessionService,
   ) {}
 
   async register(registerUserDto: RegisterUserDto) {
-    const userExists = await this.findByEmail(registerUserDto.email);
+    const emailField = this.dbMappingFields.emailField;
+    const passwordField = this.dbMappingFields.passwordField;
+
+    const userExists = await this.findByField(
+      emailField,
+      registerUserDto.email,
+    );
 
     if (userExists) {
       throw new ConflictException('El correo ya está en uso');
     }
-    if (registerUserDto.password !== registerUserDto.confirm_password) {
+    if (registerUserDto.password !== registerUserDto.password_confirmation) {
       throw new ConflictException('Las contraseñas no coinciden');
     }
-    const newUser = await this.usersRepository.create(registerUserDto);
-    newUser.password = bcrypt.hashSync(newUser.password, 10);
+
+    const newUser = this.usersRepository.create({
+      [emailField]: registerUserDto.email,
+      [passwordField]: bcrypt.hashSync(registerUserDto.password, 10),
+    });
 
     const user = await this.usersRepository.save(newUser);
-    delete user.password;
-
+    delete user[passwordField];
     return user;
   }
 
-  async findByEmail(email: string) {
-    return await this.usersRepository
-      .createQueryBuilder('user')
-      .where('user.email= :email', { email })
-      .getOne();
+  async findByField(field: string, value: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({ where: { [field]: value } });
   }
 
-  async findById(id: number) {
+  async findById(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`Usuario con id ${id} no encontrado`);
     }
+    return user;
   }
 
   async findAll(): Promise<User[]> {
-    const users = await this.usersRepository.find();
-    return users;
+    return this.usersRepository.find();
   }
 
-  async getProfile(userId: number): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(`Usuario con id ${userId} no encontrado`);
+  async findByTokenData(tokenData: any): Promise<User | undefined> {
+    return await this.usersRepository.findOne({
+      where: { email: tokenData.email },
+    });
+  }
+
+  async profile(userId: number, token: string): Promise<User> {
+    const validSession = await this.sessionService.findValidSession(
+      userId,
+      token,
+    );
+    if (!validSession) {
+      throw new UnauthorizedException('Sesión inválida o expirada');
     }
-    delete user.password; // Eliminamos la contraseña antes de devolver el perfil del usuario
+
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException(
+        `Usuario con los datos proporcionados no encontrado`,
+      );
+    }
+
+    const passwordField = this.dbMappingFields.passwordField;
+    delete user[passwordField];
     return user;
   }
 }

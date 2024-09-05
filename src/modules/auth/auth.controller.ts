@@ -2,17 +2,14 @@ import { Controller, Post, Body, Res, Req, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterUserDto } from '../users/dto/registerUserDto.dto';
-import { LoginUserDto } from '../users/dto/loginUserDto.dto';
+import { LoginUserDto } from './dto/loginUserDto.dto';
 import { RefreshTokenDto } from '../auth/dto/refreshTokenDto.dto';
-import { Request } from 'express';
-import { SessionService } from '../session/session.service';
-
+import { request, Request } from 'express';
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
-    private readonly sessionService: SessionService,
   ) {}
   @Post('register')
   async register(@Body() registerUserDto: RegisterUserDto) {
@@ -26,8 +23,8 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(200)
-  async logout(@Req() req: Request) {
-    const token = req.headers.authorization?.split(' ')[1];
+  async logout(@Req() request) {
+    const token = request['token'];
     return this.authService.logout(token);
   }
 
