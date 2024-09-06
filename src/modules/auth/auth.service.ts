@@ -30,6 +30,7 @@ export class AuthService {
       emailField,
       loginUserDto.email,
     );
+
     if (!user) {
       throw new UnauthorizedException();
     }
@@ -48,8 +49,8 @@ export class AuthService {
         { sub: user.id },
         { secret: authConstants.secret },
       );
-
       await this.sessionService.createSession(user.id, refreshToken);
+
       return {
         access_token: accessToken,
         expires_in: authConstants.convertToUnixTime(authConstants.expiresIn),

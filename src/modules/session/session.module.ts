@@ -4,9 +4,10 @@ import { Session } from './entities/session.entity';
 import { SessionService } from './session.service';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Session, User])],
+  imports: [TypeOrmModule.forFeature([Session, User]), SharedModule],
   providers: [
     {
       provide: 'SESSION_REPOSITORY',

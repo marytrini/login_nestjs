@@ -10,6 +10,7 @@ import { SessionModule } from './modules/session/session.module';
 import { Session } from './modules/session/entities/session.entity';
 import configuration from './config/configuration';
 import { DynamicConfigModule } from './modules/dynamic-config/dynamic-config.module';
+import { SharedModule } from './modules/shared/shared.module';
 
 @Module({
   imports: [
@@ -51,7 +52,7 @@ import { DynamicConfigModule } from './modules/dynamic-config/dynamic-config.mod
         sessionEntity: Session,
       },
     }),
-
+    SharedModule,
     AuthModule,
     UsersModule,
     SessionModule,

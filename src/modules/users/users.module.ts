@@ -12,11 +12,18 @@ import { AuthService } from '../auth/auth.service';
 import { SessionModule } from '../session/session.module';
 import { ExtractTokenMiddleware } from '../../middlewares/extract-token.middleware';
 import { SessionService } from '../session/session.service';
+import { DynamicConfigModule } from '../dynamic-config/dynamic-config.module';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Session]), SessionModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Session]),
+    DynamicConfigModule,
+    SharedModule,
+    //SessionModule,
+  ],
   controllers: [UsersController],
-  providers: [UsersService, AuthService],
+  providers: [UsersService, AuthService, SessionService],
   exports: [UsersService],
 })
 export class UsersModule {

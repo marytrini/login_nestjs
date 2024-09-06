@@ -32,15 +32,11 @@ export class SessionService {
     }
 
     const session = this.sessionRepository.create({ user, token });
+
     return await this.sessionRepository.save(session);
   }
 
   async invalidateSession(token: string): Promise<void> {
-    const session = await this.sessionRepository.findOne({ where: { token } });
-    if (!session) {
-      throw new NotFoundException('Sesión no encontrada');
-    }
-
     await this.sessionRepository.update({ token }, { isActive: false });
   }
 
