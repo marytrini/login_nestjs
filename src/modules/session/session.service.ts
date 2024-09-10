@@ -4,49 +4,70 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Session } from './entities/session.entity';
-import { Repository } from 'typeorm';
-import { User } from '../users/entities/user.entity';
+import { EntityManager, Repository } from 'typeorm';
+import { DatabaseMappingFields } from 'src/config/interfaces/database-config.interface';
+import { InjectEntityManager } from '@nestjs/typeorm';
 
 @Injectable()
 export class SessionService {
   constructor(
-    @Inject('SESSION_REPOSITORY')
-    private sessionRepository: Repository<Session>,
-    @Inject('USER_REPOSITORY')
-    private usersRepository: Repository<User>,
+    @Inject('DATABASE_MAPPING_FIELDS')
+    private readonly dbMappingFields: DatabaseMappingFields,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
   ) {}
+  async getUserRepository(): Promise<Repository<any>> {
+    const userEntity = this.dbMappingFields.userEntity || 'User';
+    return this.entityManager.getRepository(userEntity);
+  }
 
-  async createSession(userId: number, token: string): Promise<Session> {
-    const user = await this.usersRepository.findOneBy({ id: userId });
+  async getSessionRepository(): Promise<Repository<any>> {
+    const sessionEntity = this.dbMappingFields.sessionEntity || 'Session';
+    return this.entityManager.getRepository(sessionEntity);
+  }
+
+  async createSession(userId: number, token: string): Promise<any> {
+    const userRepository = await this.getUserRepository();
+    const sessionsRepository = await this.getSessionRepository();
+    const userField = this.dbMappingFields.userField || 'user';
+
+    if (!userField) {
+      throw new Error('El campo userField no está definido en dbMappingFields');
+    }
+
+    const user = await userRepository.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const sessionExists = await this.sessionRepository.findOne({
-      where: { user: { id: userId }, isActive: true },
+    const sessionExists = await sessionsRepository.findOne({
+      where: { [userField]: { id: userId }, isActive: true },
     });
 
     if (sessionExists) {
       throw new UnauthorizedException('El usuario ya tiene una sesión activa.');
     }
 
-    const session = this.sessionRepository.create({ user, token });
+    const session = sessionsRepository.create({ [userField]: user, token });
 
-    return await this.sessionRepository.save(session);
+    return await sessionsRepository.save(session);
   }
 
   async invalidateSession(token: string): Promise<void> {
-    await this.sessionRepository.update({ token }, { isActive: false });
+    const sessionsRepository = await this.getSessionRepository();
+    await sessionsRepository.update({ token }, { isActive: false });
   }
 
-  async findValidSession(
-    userId: number,
-    refreshToken: string,
-  ): Promise<Session> {
-    const session = await this.sessionRepository.findOne({
-      where: { user: { id: userId }, token: refreshToken, isActive: true },
-      relations: ['user'],
+  async findValidSession(userId: number, refreshToken: string): Promise<any> {
+    const userField = this.dbMappingFields.userField || 'user';
+    const sessionsRepository = this.getSessionRepository();
+    const session = (await sessionsRepository).findOne({
+      where: {
+        [userField]: { id: userId },
+        token: refreshToken,
+        isActive: true,
+      },
+      relations: [userField],
     });
 
     if (!session) {
@@ -60,7 +81,8 @@ export class SessionService {
     sessionId: number,
     newRefreshToken: string,
   ): Promise<void> {
-    const session = await this.sessionRepository.findOne({
+    const sessionsRepository = await this.getSessionRepository();
+    const session = await sessionsRepository.findOne({
       where: { id: sessionId },
     });
 
@@ -69,6 +91,6 @@ export class SessionService {
     }
 
     session.token = newRefreshToken;
-    await this.sessionRepository.save(session);
+    await sessionsRepository.save(session);
   }
 }

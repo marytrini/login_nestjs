@@ -5,12 +5,13 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/registerUserDto.dto';
 import { SessionService } from '../session/session.service';
 import { DatabaseMappingFields } from '../../config/interfaces/database-config.interface';
 import { User } from './entities/user.entity';
+import { InjectEntityManager } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
@@ -18,15 +19,24 @@ export class UsersService {
     @Inject('DATABASE_MAPPING_FIELDS')
     private readonly dbMappingFields: DatabaseMappingFields,
 
-    @Inject('USER_REPOSITORY') // Inyecta el repositorio dinámicamente
-    private usersRepository: Repository<User>,
+    @InjectEntityManager()
+    private readonly entityManager: EntityManager,
 
     private sessionService: SessionService,
   ) {}
+  async getUserRepository(): Promise<Repository<any>> {
+    const userEntity = this.dbMappingFields.userEntity || 'User';
+    return this.entityManager.getRepository(userEntity);
+  }
 
+  async getSessionRepository(): Promise<Repository<any>> {
+    const sessionEntity = this.dbMappingFields.sessionEntity || 'Session';
+    return this.entityManager.getRepository(sessionEntity);
+  }
   async register(registerUserDto: RegisterUserDto) {
     const emailField = this.dbMappingFields.emailField;
     const passwordField = this.dbMappingFields.passwordField;
+    const userRepository = await this.getUserRepository();
 
     const userExists = await this.findByField(
       emailField,
@@ -40,34 +50,38 @@ export class UsersService {
       throw new ConflictException('Las contraseñas no coinciden');
     }
 
-    const newUser = this.usersRepository.create({
+    const newUser = userRepository.create({
       [emailField]: registerUserDto.email,
       [passwordField]: bcrypt.hashSync(registerUserDto.password, 10),
     });
 
-    const user = await this.usersRepository.save(newUser);
+    const user = await userRepository.save(newUser);
     delete user[passwordField];
     return user;
   }
 
-  async findByField(field: string, value: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { [field]: value } });
+  async findByField(field: string, value: string): Promise<any | undefined> {
+    const userRepository = await this.getUserRepository();
+    return userRepository.findOne({ where: { [field]: value } });
   }
 
-  async findById(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+  async findById(id: number): Promise<any> {
+    const userRepository = await this.getUserRepository();
+    const user = await userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`Usuario con id ${id} no encontrado`);
     }
     return user;
   }
 
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async findAll(): Promise<any[]> {
+    const userRepository = await this.getUserRepository();
+    return userRepository.find();
   }
 
-  async findByTokenData(tokenData: any): Promise<User | undefined> {
-    return await this.usersRepository.findOne({
+  async findByTokenData(tokenData: any): Promise<any | undefined> {
+    const userRepository = await this.getUserRepository();
+    return await userRepository.findOne({
       where: { email: tokenData.email },
     });
   }

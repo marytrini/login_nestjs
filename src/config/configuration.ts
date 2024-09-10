@@ -49,8 +49,11 @@ export default registerAs('config', () => {
       pool_idle: parseInt(process.env.DB_POOL_IDLE, 10) || 10000,
     },
     fieldMappings: {
-      emailField: 'email',
-      passwordField: 'password',
+      emailField: process.env.DB_EMAIL_FIELD,
+      passwordField: process.env.DB_PASSWORD_FIELD,
+      userField: process.env.DB_USER_FIELD,
+      userEntity: process.env.DB_USER_ENTITY,
+      sessionEntity: process.env.DB_SESSION_ENTITY,
     },
   };
 });

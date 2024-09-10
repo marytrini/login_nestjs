@@ -31,7 +31,7 @@ import { SharedModule } from './modules/shared/shared.module';
           password: dbConfig.password,
           database: dbConfig.name,
           entities: [User, Session],
-          synchronize: true,
+          synchronize: false,
         };
       },
       inject: [ConfigService],
@@ -44,6 +44,9 @@ import { SharedModule } from './modules/shared/shared.module';
         return {
           emailField: dbFields.emailField,
           passwordField: dbFields.passwordField,
+          userField: dbFields.userField,
+          userEntity: dbFields.userEntity,
+          sessionEntity: dbFields.sessionEntity,
         };
       },
       inject: [ConfigService],
