@@ -1,73 +1,122 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Package Library</title>
+</head>
+<body>
+  <h1>Login Package Library</h1>
+  <p>
+    Una librería para el manejo de login de usuarios con configuración dinámica que se adapta al entorno del repositorio donde se instala. 
+    Está diseñada para integrarse fácilmente con proyectos basados en NestJS y utiliza tecnologías modernas para la autenticación y la seguridad.
+  </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+  <h2>Tecnologías utilizadas</h2>
+  <ul>
+    <li><strong>Backend Framework</strong>: NestJS</li>
+    <li><strong>Lenguaje</strong>: TypeScript</li>
+    <li><strong>Base de Datos</strong>: MySQL</li>
+    <li><strong>Librerías</strong>:
+      <ul>
+        <li><code>bcrypt</code> para hashing de contraseñas.</li>
+        <li><code>jsonwebtoken (jwt)</code> para la generación y verificación de tokens.</li>
+        <li><code>passport</code> para la gestión de estrategias de autenticación.</li>
+      </ul>
+    </li>
+  </ul>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+  <h2>Instalación</h2>
 
-## Description
+  <h3>Paso 1: Instalar el paquete</h3>
+  <p>Con npm:</p>
+  <pre><code>npm i @marytrini/login_package</code></pre>
+  <p>Con Yarn:</p>
+  <pre><code>yarn add @marytrini/login_package</code></pre>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+  <h3>Paso 2: Configurar el archivo <code>.npmrc</code></h3>
+  <p>Asegúrate de añadir un archivo <code>.npmrc</code> en la raíz de tu proyecto con la configuración adecuada para acceder al paquete.</p>
 
-## Installation
+  <h3>Paso 3: Configurar las variables de entorno</h3>
+  <p>Define las variables necesarias en tu archivo de entorno <code>.env</code>. Un ejemplo de configuración sería:</p>
+  <pre><code>
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=securepassword
+DB_DATABASE=login_db
+DB_PORT=3306
+DB_DIALECT=mysql
+DB_POOL_MAX=10
+DB_POOL_MIN=1
+DB_POOL_ACQUIRE=30000
+DB_POOL_IDLE=10000
+  </code></pre>
 
-```bash
-$ yarn install
-```
+  <h2>Uso</h2>
 
-## Running the app
+  <h3>1. Añadir el módulo al archivo <code>AppModule</code></h3>
+  <p>En tu aplicación NestJS, importa el módulo del paquete y añádelo a tu archivo <code>AppModule</code>:</p>
+  <pre><code>
+import { Module } from '@nestjs/common';
+import { LoginModule } from '@marytrini/login_package';
 
-```bash
-# development
-$ yarn run start
+@Module({
+  imports: [
+    LoginModule,
+    // otros módulos
+  ],
+})
+export class AppModule {}
+  </code></pre>
 
-# watch mode
-$ yarn run start:dev
+  <h3>2. Requerir los métodos donde sea necesario</h3>
+  <p>Importa y utiliza los métodos disponibles en la librería para implementar la lógica de autenticación en las partes necesarias de tu aplicación.</p>
+  <pre><code>
+import { AuthService } from '@marytrini/login_package';
 
-# production mode
-$ yarn run start:prod
-```
+// ejemplo de uso
+export class UserService {
+  constructor(private readonly authService: AuthService) {}
 
-## Test
+  async validateUser(loginDto: LoginDto) {
+    return this.authService.validateUser(loginDto);
+  }
+}
+  </code></pre>
 
-```bash
-# unit tests
-$ yarn run test
+  <h2>Configuración Dinámica</h2>
+  <p>
+    La configuración de la librería es completamente dinámica y se ajusta a las variables de entorno definidas. 
+    Asegúrate de incluir una función de configuración en tu archivo <code>configuration.ts</code>:
+  </p>
+  <pre><code>
+export default () => ({
+  db: {
+    type: 'mysql',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    name: process.env.DB_DATABASE,
+    port: process.env.DB_PORT,
+    dialect: process.env.DB_DIALECT,
+    pool_max: process.env.DB_POOL_MAX,
+    pool_min: process.env.DB_POOL_MIN,
+    pool_acquire: process.env.DB_POOL_ACQUIRE,
+    pool_idle: process.env.DB_POOL_IDLE,
+  },
+});
+  </code></pre>
 
-# e2e tests
-$ yarn run test:e2e
+  <h2>Ejecución</h2>
+  <ol>
+    <li>Inicia tu proyecto de manera habitual (<code>npm start</code>, <code>yarn start</code>, etc.).</li>
+    <li>La librería estará lista para manejar el login de usuarios según la configuración dinámica proporcionada.</li>
+  </ol>
 
-# test coverage
-$ yarn run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+  <h2>Contribuciones y Soporte</h2>
+  <p>
+    Si encuentras algún problema o deseas contribuir a la librería, por favor, abre un issue en el repositorio del paquete en GitLab. 
+    ¡Gracias por usar nuestra solución! 😊
+  </p>
+</body>
+</html>
