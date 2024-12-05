@@ -12,6 +12,4 @@ export * from './src/modules/auth/dto/refreshTokenDto.dto';
 export * from './src/modules/users/users.module';
 export * from './src/modules/users/users.service';
 export * from './src/modules/users/dto/registerUserDto.dto';
-export * from './src/modules/session/session.module';
-export * from './src/modules/session/session.service';
 export * from './src/modules/shared/shared.module';
