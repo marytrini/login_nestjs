@@ -11,6 +11,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         return {
           emailField: dbFields.emailField,
           passwordField: dbFields.passwordField,
+          userField: dbFields.userField,
+          userEntity: dbFields.userEntity,
         };
       },
       inject: [ConfigService],

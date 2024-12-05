@@ -3,5 +3,4 @@ export interface DatabaseMappingFields {
   passwordField: string;
   userField: string;
   userEntity: string;
-  sessionEntity: string;
 }

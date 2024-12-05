@@ -21,7 +21,7 @@ const validDbTypes = [
   'spanner',
 ] as const;
 
-type ValidDbType = (typeof validDbTypes)[number];
+type ValidDbType = (typeof validDbTypes)[number]; // Esto crea un tipo restringido
 
 export default registerAs('config', () => {
   // Obtener el tipo de base de datos desde las variables de entorno
@@ -53,7 +53,6 @@ export default registerAs('config', () => {
       passwordField: process.env.DB_PASSWORD_FIELD,
       userField: process.env.DB_USER_FIELD,
       userEntity: process.env.DB_USER_ENTITY,
-      sessionEntity: process.env.DB_SESSION_ENTITY,
     },
   };
 });
