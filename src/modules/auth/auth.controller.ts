@@ -1,9 +1,21 @@
-import { Controller, Post, Body, Req, HttpCode } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
-import { RegisterUserDto } from '../users/dto/registerUserDto.dto';
-import { LoginUserDto } from './dto/loginUserDto.dto';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  HttpCode,
+  Res,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthService } from 'src/modules/auth/auth.service';
+import { LoginUserDto } from 'src/modules/auth/dto/loginUserDto.dto';
+import { RegisterUserDto } from 'src/modules/users/dto/registerUserDto.dto';
+import { UsersService } from 'src/modules/users/users.service';
 import { RefreshTokenDto } from '../auth/dto/refreshTokenDto.dto';
+import { Request, Response } from 'express';
+import { JwtAuthGuard } from './auth.guard';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -16,8 +28,8 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.login(loginUserDto);
+  async login(@Body() loginUserDto: LoginUserDto, @Res() res: Response) {
+    return this.authService.login(loginUserDto, res);
   }
 
   @Post('logout')
@@ -29,7 +41,18 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
-  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    return this.authService.refreshToken(refreshTokenDto.refreshToken);
+  async refreshToken(
+    @Body() refreshTokenDto: RefreshTokenDto,
+    @Res() res: Response,
+  ) {
+    return this.authService.refreshToken(refreshTokenDto.refreshToken, res);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Req() req: Request) {
+    const user = req.user; // user debería contener los datos del usuario decodificados del JWT
+    
+    return this.usersService.profile(user.id, req.headers['authorization'])
   }
 }
